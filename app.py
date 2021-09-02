@@ -29,9 +29,6 @@ def init_user_table():
     conn.close()
 
 
-init_user_table()
-
-
 # Defining the fetching function, which allows the code to fetch data from the database,
 # which was already created for user's information.
 def fetch_users():
@@ -55,7 +52,6 @@ users = fetch_users()
 def init_product_table():
     with sqlite3.connect('bookstore.db') as conn:
         conn.execute("CREATE TABLE IF NOT EXISTS product(id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                     "category TEXT NOT NULL,"
                      "name TEXT NOT NULL,"
                      "price TEXT NOT NULL,"
                      "description TEXT NOT NULL)")
@@ -65,6 +61,7 @@ def init_product_table():
 
 
 init_product_table()
+init_user_table()
 
 username_table = {u.username: u for u in users}
 userid_table = {u.id: u for u in users}
@@ -119,7 +116,7 @@ def registration():
         username = request.form['username']
         password = request.form['password']
 
-        with sqlite3.connect('bookstore.db') as conn:
+        with sqlite3.connect("bookstore.db") as conn:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO user("
                            "name,"
@@ -127,14 +124,18 @@ def registration():
                            "username,"
                            "password) VALUES(?, ?, ?, ?)", (first_name, last_name, username, password))
             conn.commit()
-            response["message"] = "success"
+            response["message"] = "You Are Registered"
             response["status_code"] = 201
+            return response
 
-            if response["status_code"] == 201:
-                msg = Message('Success!', sender='byronflasktask@gmail.com', recipients=[email])
-                msg.body = "Your registration has been successful"
-                mail.send(msg)
-                return "Message Sent"
+            # if response["status_code"] == 201:
+            #     msg = Message('Success!', sender='byronflasktask@gmail.com', recipients=[email])
+            #     print(msg)
+            #     msg.body = "Your registration has been successful"
+            #     print(msg)
+            #     sent = mail.send(msg)
+            #     print(sent)
+            # return "Message Sent"
 
 
 # Defining the creating product function. This allows you to add new products to your database.
@@ -144,7 +145,6 @@ def create_product():
      response = {}
 
      if request.method == "POST":
-        category = request.form['category']
         name = request.form['name']
         price = request.form['price']
         content = request.form['description']
@@ -153,10 +153,9 @@ def create_product():
             cursor = conn.cursor()
 
             cursor.execute("INSERT INTO product("
-                           "category,"
                            "name,"
                            "price,"
-                           "description) VALUES(?, ?, ?, ?)", (category, name, price, content))
+                           "description) VALUES(?, ?, ?)", (name, price, content))
             conn.commit()
             response["status_code"] = 201
             response['description'] = "Product Table Added Successfully"
@@ -226,18 +225,8 @@ def edit_product(product_id):
                 incoming_data = dict(request.json)
                 put_data = {}
 
-                if incoming_data.get("category") is not None:
-                    put_data["category"] = incoming_data.get("category")
 
-                    with sqlite3.connect('bookstore.db') as conn:
-                        cursor = conn.cursor()
-                        cursor.execute("UPDATE product SET category =? WHERE id=?", (put_data["category"], product_id))
-
-                        conn.commit()
-                        response['message'] = "Update Successfully"
-                        response['status_code'] = 200
-
-                elif incoming_data.get("name") is not None:
+                if incoming_data.get("name") is not None:
                     put_data['name'] = incoming_data.get('name')
 
                     with sqlite3.connect('bookstore.db') as conn:
