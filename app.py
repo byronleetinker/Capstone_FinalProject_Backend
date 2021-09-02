@@ -138,6 +138,7 @@ def registration():
             # return "Message Sent"
 
 
+
 # Defining the creating product function. This allows you to add new products to your database.
 @app.route('/create-product/', methods=["POST"])
 def create_product():
