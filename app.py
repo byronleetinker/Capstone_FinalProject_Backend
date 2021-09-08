@@ -44,9 +44,6 @@ def fetch_users():
     return new_data
 
 
-users = fetch_users()
-
-
 # Defining the product table which creates a new database if there isn't a available one,
 # this holds all the products information.
 def init_product_table():
@@ -62,6 +59,7 @@ def init_product_table():
 
 init_product_table()
 init_user_table()
+users = fetch_users()
 
 username_table = {u.username: u for u in users}
 userid_table = {u.id: u for u in users}
@@ -108,60 +106,67 @@ def protected():
 @app.route('/registration/', methods=["POST"])
 def registration():
     response = {}
+    try:
 
-    if request.method == "POST":
-        first_name = request.form['name']
-        last_name = request.form['surname']
-        email = request.form['email']
-        username = request.form['username']
-        password = request.form['password']
+        if request.method == "POST":
+            first_name = request.json['first_name']
+            last_name = request.json['last_name']
+            # email = request.json['email']
+            username = request.json['username']
+            password = request.json['password']
 
-        with sqlite3.connect("bookstore.db") as conn:
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO user("
-                           "name,"
-                           "surname,"
-                           "username,"
-                           "password) VALUES(?, ?, ?, ?)", (first_name, last_name, username, password))
-            conn.commit()
-            response["message"] = "You Are Registered"
-            response["status_code"] = 201
-            return response
+            with sqlite3.connect("bookstore.db") as conn:
+                cursor = conn.cursor()
+                cursor.execute("INSERT INTO user("
+                               "name,"
+                               "surname,"
+                               "username,"
+                               "password) VALUES(?, ?, ?, ?)", (first_name, last_name, username, password))
+                conn.commit()
+                response["message"] = "You Are Registered"
+                response["status_code"] = 201
+        return response
 
-            # if response["status_code"] == 201:
-            #     msg = Message('Success!', sender='byronflasktask@gmail.com', recipients=[email])
-            #     print(msg)
-            #     msg.body = "Your registration has been successful"
-            #     print(msg)
-            #     sent = mail.send(msg)
-            #     print(sent)
-            # return "Message Sent"
+    except ValueError:
+        response["status_code"] = 404
+        response['description'] = "Unsuccessful"
+        return response
 
+        # if response["status_code"] == 201:
+        #     msg = Message('Success!', sender='byronflasktask@gmail.com', recipients=[email])
+        #     print(msg)
+        #     msg.body = "Your registration has been successful"
+        #     print(msg)
+        #     sent = mail.send(msg)
+        #     print(sent)
+        # return "Message Sent"
 
 
 # Defining the creating product function. This allows you to add new products to your database.
 @app.route('/create-product/', methods=["POST"])
 def create_product():
+    response = {}
     try:
-     response = {}
+        if request.method == "POST":
+            name = request.json['name']
+            price = request.json['price']
+            content = request.json['description']
 
-     if request.method == "POST":
-        name = request.form['name']
-        price = request.form['price']
-        content = request.form['description']
+            with sqlite3.connect('bookstore.db') as conn:
+                cursor = conn.cursor()
 
-        with sqlite3.connect('bookstore.db') as conn:
-            cursor = conn.cursor()
+                cursor.execute("INSERT INTO product("
+                               "name,"
+                               "price,"
+                               "description) VALUES(?, ?, ?)", (name, price, content))
+                conn.commit()
+                response["status_code"] = 201
+                response['description'] = "Product Table Added Successfully"
+                return response
 
-            cursor.execute("INSERT INTO product("
-                           "name,"
-                           "price,"
-                           "description) VALUES(?, ?, ?)", (name, price, content))
-            conn.commit()
-            response["status_code"] = 201
-            response['description'] = "Product Table Added Successfully"
-
-    except:
+    except ValueError:
+        response["status_code"] = 404
+        response['description'] = "Unsuccessful"
         return response
 
 
@@ -183,16 +188,19 @@ def get_product():
 # This function allows you to delete products from the database.
 @app.route("/delete-product/<int:product_id>/")
 def delete_product(product_id):
+    response = {}
     try:
-        response = {}
-
         with sqlite3.connect('bookstore.db') as conn:
             cursor = conn.cursor()
             cursor.execute("DELETE FROM product WHERE id=" + str(product_id))
             conn.commit()
             response['status_code'] = 200
             response['message'] = "Product Deleted Successfully."
-    except:
+            return response
+
+    except ValueError:
+        response["status_code"] = 404
+        response['description'] = "Unsuccessful"
         return response
 
 
@@ -209,6 +217,8 @@ def view_one_product(product_id):
 
             response['status_code'] = 200
             response['data'] = product
+            return jsonify(response)
+
 
     except:
         return jsonify(response)
@@ -225,7 +235,6 @@ def edit_product(product_id):
             with sqlite3.connect('bookstore.db') as conn:
                 incoming_data = dict(request.json)
                 put_data = {}
-
 
                 if incoming_data.get("name") is not None:
                     put_data['name'] = incoming_data.get('name')
