@@ -109,11 +109,11 @@ def registration():
     try:
 
         if request.method == "POST":
-            first_name = request.json['first_name']
-            last_name = request.json['last_name']
+            first_name = request.json['#name']
+            last_name = request.json['#surname']
             # email = request.json['email']
-            username = request.json['username']
-            password = request.json['password']
+            username = request.json['#username']
+            password = request.json['#password']
 
             with sqlite3.connect("bookstore.db") as conn:
                 cursor = conn.cursor()
