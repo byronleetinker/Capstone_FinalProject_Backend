@@ -109,11 +109,10 @@ def registration():
     try:
 
         if request.method == "POST":
-            first_name = request.json['#name']
-            last_name = request.json['#surname']
-            # email = request.json['email']
-            username = request.json['#username']
-            password = request.json['#password']
+            first_name = request.json['name']
+            last_name = request.json['surname']
+            username = request.json['username']
+            password = request.json['password']
 
             with sqlite3.connect("bookstore.db") as conn:
                 cursor = conn.cursor()
@@ -131,15 +130,6 @@ def registration():
         response["status_code"] = 404
         response['description'] = "Unsuccessful"
         return response
-
-        # if response["status_code"] == 201:
-        #     msg = Message('Success!', sender='byronflasktask@gmail.com', recipients=[email])
-        #     print(msg)
-        #     msg.body = "Your registration has been successful"
-        #     print(msg)
-        #     sent = mail.send(msg)
-        #     print(sent)
-        # return "Message Sent"
 
 
 # Defining the creating product function. This allows you to add new products to your database.
