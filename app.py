@@ -109,8 +109,8 @@ def registration():
     try:
 
         if request.method == "POST":
-            first_name = request.json['name']
-            last_name = request.json['surname']
+            name = request.json['name']
+            surname = request.json['surname']
             username = request.json['username']
             password = request.json['password']
 
@@ -120,7 +120,7 @@ def registration():
                                "name,"
                                "surname,"
                                "username,"
-                               "password) VALUES(?, ?, ?, ?)", (first_name, last_name, username, password))
+                               "password) VALUES(?, ?, ?, ?)", (name, surname, username, password))
                 conn.commit()
                 response["message"] = "You Are Registered"
                 response["status_code"] = 201
@@ -247,7 +247,23 @@ def edit_product(product_id):
 
                         response["content"] = "Content Updated Successfully"
                         response["status_code"] = 200
-    except:
+
+                elif incoming_data.get("description") is not None:
+                    put_data['description'] = incoming_data.get('description')
+
+                    with sqlite3.connect('bookstore.db') as conn:
+                        cursor = conn.cursor()
+                        cursor.execute("UPDATE product SET description =? WHERE id=?", (put_data["description"], product_id))
+                        conn.commit()
+
+                        response["content"] = "Content Updated Successfully"
+                        response["status_code"] = 200
+
+                return response
+
+    except ValueError:
+        response["status_code"] = 404
+        response['description'] = "Unsuccessful"
         return response
 
 
